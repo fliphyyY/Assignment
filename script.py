@@ -10,15 +10,6 @@ office = ''
 tel = ''
 sites = []
 
-class Employee:
-  def __init__(self, name, surname, email, phone, office):
-    self.name = name
-    self.surname = surname
-    self.email = email
-    self.phone = phone
-    self.office = office
-
-
 def has_numbers(inputString):
     return any(char.isdigit() for char in inputString)
 
@@ -39,8 +30,24 @@ def create_user(name, surname, phone, office):
     params = (name, surname, phone, office)
     cursor.execute("INSERT INTO Employee_db VALUES (?,?,?,?)",params)
     conn.commit()
-    print('User Creation Successful')
+    print('Employee inserted into the database!')
     conn.close()
+
+def highest_number_employees():
+    conn = sqlite3.connect('Client_data.db')
+    cursor = conn.cursor()
+    cursor.execute("SELECT OFFICE, COUNT(*) FROM Employee_db WHERE OFFICE != '' GROUP BY OFFICE ORDER BY COUNT(*) desc limit 1")
+    result = cursor.fetchall()
+    return result
+
+def getOfficeEmployees(office):
+    conn = sqlite3.connect('Client_data.db')
+    params = (office)
+    cursor = conn.cursor()
+    cursor.execute("SELECT NAME, SURNAME FROM Employee_db WHERE OFFICE =?",(params,))
+    result = cursor.fetchall()
+    return result
+
 
 
 def getLinks():
@@ -89,19 +96,14 @@ def createFile():
     check_file = os.path.exists(path)
     if check_file is False:
         sql_database()
-
-#create_user(name, surname, tel, office)
-
-
-
-
+    else: 
+        os.remove("Client_data.db")
+        sql_database()
 
 def main():
     getLinks()
     createFile()
-    # text = ['EMPLOYEES']
-    # with open('textfile.txt', 'w', encoding="utf-8") as f:
-    #         f.writelines('\n'.join(text) + '\n')
+    text = ['EMPLOYEES']
     for i in range(len(sites)):
         getPageEmployee(sites[i])
         nameSurname(sites[i])
@@ -109,13 +111,12 @@ def main():
         phoneNumer()
         create_user(name, surname, tel, office)
 
-        # with open('textfile.txt', 'a', encoding="utf-8") as f:
-        #     f.writelines('*****************************\n')
-        #     f.writelines(name + '\n')
-        #     f.writelines(surname + '\n')
-        #     f.writelines(office + '\n')
-        #     f.writelines(tel + '\n')
-        #     f.writelines('*****************************\n')
+    cursorResultHighestNumber = highest_number_employees()
+    cursorResultEmployees = getOfficeEmployees(str(cursorResultHighestNumber[0][0]))
+    print('\nThe name of the office with highest number employees is ' + cursorResultHighestNumber[0][0] + ' and the count of the employees is ' + str(cursorResultHighestNumber[0][1]) +'.\n')
+
+    for i in range(len(cursorResultEmployees)):
+        print(cursorResultEmployees[i][0].capitalize() + ' ' + cursorResultEmployees[i][1].capitalize())
 
 
 if __name__=="__main__":
