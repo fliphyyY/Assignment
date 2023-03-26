@@ -14,14 +14,14 @@ def has_numbers(inputString):
     return any(char.isdigit() for char in inputString)
 
 def sql_database():
-    conn = sqlite3.connect('Client_data.db') #Opens Connection to SQLite database file.
+    conn = sqlite3.connect('Client_data.db') 
     conn.execute('''CREATE TABLE Employee_db
                 (NAME            BLOB NOT NULL,
                 SURNAME         BLOB NOT NULL,
                 PHONE           BLOB NOT NULL,
                 OFFICE          BLOB NOT NULL  
-                );''') #Creates the table
-    conn.commit() # Commits the entries to the database
+                );''') 
+    conn.commit() 
     conn.close()
 
 def create_user(name, surname, phone, office):
@@ -48,19 +48,14 @@ def getOfficeEmployees(office):
     result = cursor.fetchall()
     return result
 
-
-
 def getLinks():
-
     url = "https://www.ics.muni.cz/en/about-us/employees"
     html = requests.get(url).content
     soup = BeautifulSoup(html, "html.parser")
-
     links = [a["href"] for a in soup.find_all("a", href=True)]
     for i in range(len(links)):
         if has_numbers(links[i]) and links[i] not in sites:
             sites.append('https://www.ics.muni.cz/' + links[i])
-
 
 def getPageEmployee(urlEmployee):
     url = urlEmployee
@@ -83,7 +78,6 @@ def officeNumber():
         office = soup[startIndex:startIndex + 30]
         office = office[8:30].strip()
 
-
 def phoneNumer():
     startIndex = soup.find("tel:")
     global tel
@@ -103,7 +97,6 @@ def createFile():
 def main():
     getLinks()
     createFile()
-    text = ['EMPLOYEES']
     for i in range(len(sites)):
         getPageEmployee(sites[i])
         nameSurname(sites[i])
@@ -118,12 +111,5 @@ def main():
     for i in range(len(cursorResultEmployees)):
         print(cursorResultEmployees[i][0].capitalize() + ' ' + cursorResultEmployees[i][1].capitalize())
 
-
 if __name__=="__main__":
     main()
-
-
-
-
-
-
