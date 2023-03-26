@@ -3,12 +3,12 @@ import sqlite3
 from bs4 import BeautifulSoup
 import os.path
 
-
 soup = ''
 name = ''
 surname = ''
 office = ''
 tel = ''
+sites = []
 
 class Employee:
   def __init__(self, name, surname, email, phone, office):
@@ -48,7 +48,6 @@ def getLinks():
     url = "https://www.ics.muni.cz/en/about-us/employees"
     html = requests.get(url).content
     soup = BeautifulSoup(html, "html.parser")
-    sites = []
 
     links = [a["href"] for a in soup.find_all("a", href=True)]
     for i in range(len(links)):
@@ -56,36 +55,38 @@ def getLinks():
             sites.append('https://www.ics.muni.cz/' + links[i])
 
 
-def getPageEmployee():
-    url = "https://www.ics.muni.cz/en/about-us/employees/255519-petr-velan"
+def getPageEmployee(urlEmployee):
+    url = urlEmployee
     html = requests.get(url).content
+    global soup
     soup = BeautifulSoup(html, "html.parser")
     soup = str(soup)
 
-def nameSurname():
-    urlParse = url.split('-')
+def nameSurname(urlEmployee):
+    urlParse = urlEmployee.split('-')
+    global name
+    global surname
     name = urlParse[len(urlParse) - 2]
     surname = urlParse[len(urlParse) - 1]
-    print(name)
-    print(surname)
 
-def office():
-    startIndex = soup.find("Office")
-    office = soup[startIndex:startIndex + 30]
-    office = office[8:30].strip()
-    print(office)
+def officeNumber():
+    startIndex = soup.find("Office:")
+    global office
+    if startIndex != '-1':
+        office = soup[startIndex:startIndex + 30]
+        office = office[8:30].strip()
 
 
 def phoneNumer():
     startIndex = soup.find("tel:")
-    tel = soup[startIndex:startIndex + 17]
-    tel = tel[4:17].strip()
-    print(tel)
+    global tel
+    if startIndex != '-1':
+        tel = soup[startIndex:startIndex + 17]
+        tel = tel[4:17].strip()
 
 def createFile():
     path = './Client_data.db'
     check_file = os.path.exists(path)
-    print(check_file)
     if check_file is False:
         sql_database()
 
@@ -97,6 +98,29 @@ def createFile():
 
 def main():
     getLinks()
+    createFile()
+    # text = ['EMPLOYEES']
+    # with open('textfile.txt', 'w', encoding="utf-8") as f:
+    #         f.writelines('\n'.join(text) + '\n')
+    for i in range(len(sites)):
+        getPageEmployee(sites[i])
+        nameSurname(sites[i])
+        officeNumber()
+        phoneNumer()
+        create_user(name, surname, tel, office)
+
+        # with open('textfile.txt', 'a', encoding="utf-8") as f:
+        #     f.writelines('*****************************\n')
+        #     f.writelines(name + '\n')
+        #     f.writelines(surname + '\n')
+        #     f.writelines(office + '\n')
+        #     f.writelines(tel + '\n')
+        #     f.writelines('*****************************\n')
+
+
+if __name__=="__main__":
+    main()
+
 
 
 
